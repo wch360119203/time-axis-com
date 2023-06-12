@@ -8,9 +8,10 @@
 import { onMounted, ref } from 'vue'
 import TimeAxis from './TimeAxis'
 const container = ref<HTMLElement>()
+let timeAxis: TimeAxis
 onMounted(async () => {
   if (!container.value) throw new Error('container渲染失败')
-  const timeAxis = new TimeAxis(container.value,)
+  timeAxis = new TimeAxis(container.value)
   await timeAxis.ready
 })
 </script>
