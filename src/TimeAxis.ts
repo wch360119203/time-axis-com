@@ -118,6 +118,7 @@ export default class TimeAxis {
     this.graduationList?.forEach((el) => {
       el.offsetX(offset)
     })
+    this.bgOffset = (this.bgOffset + offset) % Graduation.totalWidth
   }
   private bgOffset = 0
   public moveBackGround(ms: number) {
@@ -137,11 +138,10 @@ export default class TimeAxis {
       offset = diff / 2
     }
     this.setOffset(offset)
-    this.bgOffset = (this.bgOffset + offset) % Graduation.totalWidth
     this.calculateCursorTime()
     window.requestAnimationFrame((t) => this.moveBackGround(t))
   }
-  private calculateCursorTime() {
+  calculateCursorTime() {
     const cursorX = this.cursor?.style.x
     if (cursorX === undefined) return
     const realX = Number(cursorX) - this.bgOffset + Graduation.totalWidth / 2
@@ -149,5 +149,19 @@ export default class TimeAxis {
     if (firstGraduationTime === undefined) return
     const cursorTime = firstGraduationTime.add((2 * realX) / Graduation.totalWidth, 'hour')
     this.observer.dispatch('timeUpdate', cursorTime.toDate())
+    return cursorTime.toDate()
+  }
+  moveToTime(time: Date) {
+    const currentTime = this.calculateCursorTime()
+    if (currentTime === undefined || this.cursor === undefined) return
+    const cursorX = this.cursor.style.x
+    if (cursorX === undefined) return
+    const diff =
+      ((currentTime.valueOf() - time.valueOf()) / (1000 * 60 * 60 * 2)) * Graduation.totalWidth
+    const cursorMove = this.option.width / 2 - Number(cursorX)
+    const bgMove = diff + cursorMove
+    this.setOffset(bgMove)
+    this.cursor.style.x = this.option.width / 2
+    this.calculateCursorTime()
   }
 }

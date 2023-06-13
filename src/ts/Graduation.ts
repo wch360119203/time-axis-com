@@ -104,6 +104,7 @@ export default class Graduation extends CustomElement<GraduationStyleProps> {
       if (this.upperText?.style.text) this.upperText.style.text = ''
     }
   }
+  /**x>0则右移 */
   public offsetX(x: number) {
     const preOffset = this.offset
     this.offset += x
