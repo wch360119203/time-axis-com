@@ -1,9 +1,10 @@
-import { Canvas, Image, FederatedPointerEvent } from '@antv/g'
-import { Renderer } from '@antv/g-canvas'
+import { Canvas, Image } from '@antv/g'
+import { Renderer as CanvasRenderer } from '@antv/g-canvas'
 import { Graduation } from './ts'
 import { defaultsDeep } from 'lodash'
 import dayjs from 'dayjs'
 import locateSvg from '@/assets/locate2.svg'
+import { Observer } from '@wuch96/utils'
 interface initOption {
   width: number
   endTime: Date
@@ -11,10 +12,13 @@ interface initOption {
 }
 export default class TimeAxis {
   canvas: Canvas
-  option: initOption
-  public ready: Promise<void>
-  graduationList?: Graduation[]
-  cursor?: Image
+  ready: Promise<void>
+  observer = new Observer<{
+    timeUpdate: (t: Date) => void
+  }>()
+  private option: initOption
+  private graduationList?: Graduation[]
+  private cursor?: Image
   private cursorState: 'normal' | 'back' | 'forward' = 'normal'
   private preTime?: number
   constructor(container: HTMLElement | string, option?: Partial<initOption>) {
@@ -27,7 +31,7 @@ export default class TimeAxis {
       width: this.option.width,
       height: 40,
       background: 'grey',
-      renderer: new Renderer()
+      renderer: new CanvasRenderer()
     })
     this.canvas = canvas
     this.ready = (async () => {
@@ -93,6 +97,7 @@ export default class TimeAxis {
       }
       const target = tX < 0 ? 0 : tX > this.option.width ? this.option.width : tX
       cursor.style.x = target
+      this.calculateCursorTime()
     }
     cursor.addEventListener('pointerdown', () => {
       leftX = this.canvas.document.documentElement.getBoundingClientRect().x
@@ -114,20 +119,35 @@ export default class TimeAxis {
       el.offsetX(offset)
     })
   }
+  private bgOffset = 0
   public moveBackGround(ms: number) {
     if (this.preTime === undefined) {
       this.preTime = ms
     }
     const diff = ms - this.preTime
     this.preTime = ms
-    if (this.cursorState === 'forward') {
-      this.setOffset(-diff / 2)
-      window.requestAnimationFrame((t) => this.moveBackGround(t))
-    } else if (this.cursorState === 'back') {
-      this.setOffset(diff / 2)
-      window.requestAnimationFrame((t) => this.moveBackGround(t))
-    } else {
+    if (this.cursorState === 'normal') {
       this.preTime = undefined
+      return
     }
+    let offset: number
+    if (this.cursorState === 'forward') {
+      offset = -diff / 2
+    } else {
+      offset = diff / 2
+    }
+    this.setOffset(offset)
+    this.bgOffset = (this.bgOffset + offset) % Graduation.totalWidth
+    this.calculateCursorTime()
+    window.requestAnimationFrame((t) => this.moveBackGround(t))
+  }
+  private calculateCursorTime() {
+    const cursorX = this.cursor?.style.x
+    if (cursorX === undefined) return
+    const realX = Number(cursorX) - this.bgOffset + Graduation.totalWidth / 2
+    const firstGraduationTime = this.graduationList?.[0].date
+    if (firstGraduationTime === undefined) return
+    const cursorTime = firstGraduationTime.add((2 * realX) / Graduation.totalWidth, 'hour')
+    this.observer.dispatch('timeUpdate', cursorTime.toDate())
   }
 }
