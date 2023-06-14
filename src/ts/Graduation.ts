@@ -108,7 +108,7 @@ export default class Graduation extends CustomElement<GraduationStyleProps> {
   public offsetX(x: number) {
     const preOffset = this.offset
     this.offset += x
-    if (Math.abs(this.offset) > Graduation.totalWidth) {
+    if (Math.abs(this.offset) >= Graduation.totalWidth) {
       const times = Math.trunc(this.offset / Graduation.totalWidth)
       this.updateDate(this.date.subtract(2 * times, 'hour'))
       this.offset = this.offset % Graduation.totalWidth
