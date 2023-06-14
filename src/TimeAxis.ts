@@ -1,4 +1,4 @@
-import { Canvas, Image } from '@antv/g'
+import { Canvas, Image, Line } from '@antv/g'
 import { Renderer as CanvasRenderer } from '@antv/g-canvas'
 import { Graduation } from './ts'
 import { defaultsDeep } from 'lodash'
@@ -35,6 +35,8 @@ export default class TimeAxis {
       renderer: new CanvasRenderer()
     })
     this.canvas = canvas
+    canvas.appendChild(this.startMark)
+    canvas.appendChild(this.endMark)
     this.ready = (async () => {
       await canvas.ready
       this.graduationList = this.initGraduation()
@@ -255,11 +257,33 @@ export default class TimeAxis {
     const currentTime = this.calculateCursorTime()
     if (currentTime === undefined) return
     if (currentTime.valueOf() > endTime.valueOf()) this.setTime(endTime, 0)
+    this.calculateEndTimeX()
   }
+  private endMark = new Line({
+    style: {
+      x1: -10,
+      x2: -10,
+      y1: 15,
+      y2: 40,
+      stroke: 'red',
+      lineWidth: 2
+    }
+  })
+  private startMark = new Line({
+    style: {
+      x1: -10,
+      x2: -10,
+      y1: 15,
+      y2: 40,
+      stroke: 'red',
+      lineWidth: 2
+    }
+  })
   /**计算结束时间的X位置 */
   private calculateEndTimeX() {
     if (this.endTime === undefined) return
     const endX = this.calculateXbyTime(this.endTime)
+    this.endMark.style.x1 = this.endMark.style.x2 = endX ?? -10
     if (endX === undefined) return
     if (this.cursor && Number(this.cursor.style.x) > endX) {
       this.cursor.style.x = endX
@@ -275,11 +299,13 @@ export default class TimeAxis {
     const currentTime = this.calculateCursorTime()
     if (currentTime === undefined) return
     if (currentTime.valueOf() < startTime.valueOf()) this.setTime(startTime, 0)
+    this.calculateStartTimeX()
   }
   /**计算开始时间的X位置 */
   private calculateStartTimeX() {
     if (this.startTime === undefined) return
     const startX = this.calculateXbyTime(this.startTime)
+    this.startMark.style.x1 = this.startMark.style.x2 = startX ?? -10
     if (startX === undefined) return
     if (this.cursor && Number(this.cursor.style.x) > startX) {
       this.cursor.style.x = startX
