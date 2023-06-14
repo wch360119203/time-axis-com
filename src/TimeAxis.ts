@@ -120,8 +120,44 @@ export default class TimeAxis {
     })
     this.bgOffset = (this.bgOffset + offset) % Graduation.totalWidth
   }
+  private setOffsetAnimate(offset: number, time: number = 1000) {
+    const startT: number = performance.now()
+    let doneOffset = 0
+    const fun = () => {
+      requestAnimationFrame((t) => {
+        if (t < startT + time) {
+          const percent = (t - startT) / time
+          const move = percent * offset - doneOffset
+          this.setOffset(move)
+          doneOffset += move
+          fun()
+        } else {
+          this.setOffset(offset - doneOffset)
+        }
+      })
+    }
+    fun()
+  }
+  private setCursorX(targetX: number, time = 1000) {
+    if (this.cursor === undefined) return
+    const startT = performance.now()
+    const startX = Number(this.cursor.style.x)
+    const fun = () => {
+      requestAnimationFrame((t) => {
+        if (this.cursor === undefined) return
+        if (t < startT + time) {
+          const percent = (t - startT) / time
+          this.cursor.style.x = (targetX - startX) * percent + startX
+          fun()
+        } else {
+          this.cursor.style.x = targetX
+        }
+      })
+    }
+    fun()
+  }
   private bgOffset = 0
-  public moveBackGround(ms: number) {
+  private moveBackGround(ms: number) {
     if (this.preTime === undefined) {
       this.preTime = ms
     }
@@ -160,8 +196,8 @@ export default class TimeAxis {
       ((currentTime.valueOf() - time.valueOf()) / (1000 * 60 * 60 * 2)) * Graduation.totalWidth
     const cursorMove = this.option.width / 2 - Number(cursorX)
     const bgMove = diff + cursorMove
-    this.setOffset(bgMove)
-    this.cursor.style.x = this.option.width / 2
+    this.setOffsetAnimate(bgMove)
+    this.setCursorX(this.option.width / 2)
     this.calculateCursorTime()
   }
 }
