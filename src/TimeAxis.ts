@@ -189,16 +189,23 @@ export default class TimeAxis {
     this.calculateCursorTime()
     window.requestAnimationFrame((t) => this.moveBackGround(t))
   }
+  /**计算当前指针指示时间 */
   calculateCursorTime() {
     const cursorX = this.cursor?.style.x
     if (cursorX === undefined) return
-    const realX = Number(cursorX) - this.bgOffset + Graduation.totalWidth / 2
-    const firstGraduationTime = this.graduationList?.[0].date
-    if (firstGraduationTime === undefined) return
-    const cursorTime = firstGraduationTime.add((2 * realX) / Graduation.totalWidth, 'hour')
+    const cursorTime = this.calculateXTime(Number(cursorX))
+    if (cursorTime === undefined) return
     this.observer.dispatch('timeUpdate', cursorTime.toDate())
     return cursorTime.toDate()
   }
+  private calculateXTime(x: number) {
+    const realX = x - this.bgOffset + Graduation.totalWidth / 2
+    const firstGraduationTime = this.graduationList?.[0].date
+    if (firstGraduationTime === undefined) return
+    const cursorTime = firstGraduationTime.add((2 * realX) / Graduation.totalWidth, 'hour')
+    return cursorTime
+  }
+  /**移动到指定时间 */
   async moveToTime(target: Date, animationTime = 1000) {
     if (Number.isNaN(target.valueOf())) return
     const currentTime = this.calculateCursorTime()
