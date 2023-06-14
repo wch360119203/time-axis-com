@@ -12,6 +12,12 @@
   <div class="center">
     移动到:<input v-model="moveToStr" /><button @click="moveToTime">确定</button>
   </div>
+  <div class="center">
+    设置时间边界(end):<input v-model="endX" /><button @click="setEndX">确定</button>
+  </div>
+  <div class="center">
+    设置时间边界(start):<input v-model="startX" /><button @click="setStartX">确定</button>
+  </div>
 </template>
 <script setup lang="ts">
 import { onMounted, ref, computed } from 'vue'
@@ -33,8 +39,17 @@ onMounted(async () => {
 const moveToStr = ref('')
 function moveToTime() {
   const time = dayjs(moveToStr.value)
-  timeAxis?.moveToTime(time.toDate())
+  timeAxis?.setTime(time.toDate())
   timeAxis?.calculateCursorTime()
+}
+
+const endX = ref('')
+function setEndX() {
+  timeAxis?.setEndTime(dayjs(endX.value).toDate())
+}
+const startX = ref('')
+function setStartX() {
+  timeAxis?.setStartTime(dayjs(startX.value).toDate())
 }
 </script>
 <style>
