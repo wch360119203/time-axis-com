@@ -9,6 +9,7 @@ interface initOption {
   width: number
   endTime: Date
   strokeColor: string
+  background: string
 }
 export default class TimeAxis {
   canvas: Canvas
@@ -25,13 +26,18 @@ export default class TimeAxis {
   constructor(container: HTMLElement | string, option?: Partial<initOption>) {
     const dom = typeof container === 'string' ? document.getElementById(container) : container
     if (dom === null) throw new Error('未获取到容器')
-    const dftOpt: initOption = { width: 1000, endTime: new Date(), strokeColor: 'white' }
+    const dftOpt: initOption = {
+      width: 1000,
+      endTime: new Date(),
+      strokeColor: 'white',
+      background: 'transparent'
+    }
     this.option = defaultsDeep(option, dftOpt)
     const canvas = new Canvas({
       container,
       width: this.option.width,
       height: 40,
-      background: 'grey',
+      background: this.option.background,
       renderer: new CanvasRenderer()
     })
     this.canvas = canvas
