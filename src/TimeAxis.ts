@@ -114,11 +114,11 @@ export default class TimeAxis {
     }
     cursor.addEventListener('pointerdown', () => {
       leftX = this.canvas.document.documentElement.getBoundingClientRect().x
-      document.body.addEventListener('pointermove', moveFn)
-      document.body.addEventListener(
+      document.addEventListener('pointermove', moveFn)
+      document.addEventListener(
         'pointerup',
         () => {
-          document.body.removeEventListener('pointermove', moveFn)
+          document.removeEventListener('pointermove', moveFn)
           this.cursorState = 'normal'
           this.preTime = undefined
         },
@@ -133,6 +133,9 @@ export default class TimeAxis {
       el.offsetX(offset)
     })
     this.bgOffset = (this.bgOffset + offset) % Graduation.totalWidth
+
+    this.calculateStartTimeX()
+    this.calculateEndTimeX()
   }
   /**设置刻度的位置，带动画 */
   private setOffsetAnimate(offset: number, time: number = 1000) {
