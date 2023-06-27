@@ -16,7 +16,8 @@ export default class TimeAxis {
   ready: Promise<void>
   observer = new Observer<{
     timeUpdate: (t: Date) => void
-    dragEnd: (t: Date) => void
+    drag: (t: Date) => void
+    setTimeEnd: (t: Date) => void
   }>()
   private option: initOption
   private graduationList?: Graduation[]
@@ -110,7 +111,8 @@ export default class TimeAxis {
       if (endX !== undefined && target > endX) target = endX
       if (startX !== undefined && target < startX) target = startX
       cursor.style.x = target
-      this.calculateCursorTime()
+      const t = this.calculateCursorTime()
+      t && this.observer.dispatch('drag', t)
     }
     cursor.addEventListener('pointerdown', () => {
       leftX = this.canvas.document.documentElement.getBoundingClientRect().x
@@ -213,16 +215,19 @@ export default class TimeAxis {
       offset = diff / 2
     }
     this.setOffset(offset)
-    this.calculateCursorTime()
+    const t = this.calculateCursorTime()
+    t && this.observer.dispatch('drag', t)
     window.requestAnimationFrame((t) => this.moveBackGround(t))
   }
-  /**计算当前指针指示时间 */
-  calculateCursorTime() {
+  /**计算当前指针指示时间
+   * @param isDispatch 是否触发timeUpdate,默认true
+   */
+  calculateCursorTime(isDispatch = true) {
     const cursorX = this.cursor?.style.x
     if (cursorX === undefined) return
     const cursorTime = this.calculateTimeByX(Number(cursorX))
     if (cursorTime === undefined) return
-    this.observer.dispatch('timeUpdate', cursorTime.toDate())
+    isDispatch && this.observer.dispatch('timeUpdate', cursorTime.toDate())
     return cursorTime.toDate()
   }
   /**计算X对应的时间 */
@@ -243,7 +248,7 @@ export default class TimeAxis {
     if (this.startTime && target.valueOf() < this.startTime.valueOf()) {
       target = this.startTime
     }
-    const currentTime = this.calculateCursorTime()
+    const currentTime = this.calculateCursorTime(false)
     if (currentTime === undefined || this.cursor === undefined) return
     const cursorX = this.cursor.style.x
     if (cursorX === undefined) return
@@ -255,7 +260,8 @@ export default class TimeAxis {
       this.setOffsetAnimate(bgMove, animationTime),
       this.setCursorX(this.option.width / 2, animationTime)
     ])
-    this.calculateCursorTime()
+    const t = this.calculateCursorTime()
+    t && this.observer.dispatch('setTimeEnd', t)
     return
   }
   private endTime?: Date

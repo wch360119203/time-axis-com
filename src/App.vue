@@ -31,7 +31,10 @@ onMounted(async () => {
   if (!container.value) throw new Error('container渲染失败')
   timeAxis = new TimeAxis(container.value, { width: 1300 })
   await timeAxis.ready
-  timeAxis.observer.on('timeUpdate', (t) => {
+  timeAxis.observer.on('drag', (t) => {
+    currentTime.value = t
+  })
+  timeAxis.observer.on('setTimeEnd', (t) => {
     currentTime.value = t
   })
   timeAxis.calculateCursorTime()
@@ -40,7 +43,6 @@ const moveToStr = ref('')
 function moveToTime() {
   const time = dayjs(moveToStr.value)
   timeAxis?.setTime(time.toDate())
-  timeAxis?.calculateCursorTime()
 }
 
 const endX = ref('')

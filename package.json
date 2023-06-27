@@ -1,6 +1,6 @@
 {
   "name": "@wuch96/time-axis-com",
-  "version": "0.0.2",
+  "version": "0.0.4",
   "private": false,
   "type": "module",
   "main": "./dist/timeAxis.umd.cjs",
